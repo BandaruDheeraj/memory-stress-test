@@ -230,11 +230,30 @@ if [[ "$DEPLOY_ONLY" == false ]]; then
     if [[ -n "$STAGING_SLOT_URL" && "$STAGING_SLOT_URL" != "null" && "$ENVIRONMENT" != "dev" ]]; then
         print_color $NC "Staging: $STAGING_SLOT_URL"
     fi
+    
+    # Extract drift resolution status from deployment output
+    SELECTED_SKU=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.properties.outputs.selectedSku.value // "N/A"')
+    MEMORY_CAPACITY=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.properties.outputs.actualMemoryCapacityMB.value // "N/A"')
+    MAX_THRESHOLD=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.properties.outputs.configuredMaxThresholdMB.value // "N/A"')
+    IS_DRIFT_RESOLVED=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.properties.outputs.isDriftResolved.value // false')
+    
+    echo ""
+    print_color $CYAN "🔧 Infrastructure & Configuration Alignment:"
+    print_color $NC "Selected SKU: $SELECTED_SKU"
+    print_color $NC "Infrastructure Memory Capacity: ${MEMORY_CAPACITY} MB"
+    print_color $NC "Configured Max Threshold: ${MAX_THRESHOLD} MB"
+    
+    if [[ "$IS_DRIFT_RESOLVED" == "true" ]]; then
+        print_color $GREEN "✅ IaC Drift Resolved: Infrastructure capacity >= Application memory limits"
+    else
+        print_color $RED "❌ IaC Drift Present: Infrastructure capacity < Application memory limits"
+    fi
+    
     echo ""
     print_color $YELLOW "📊 To test the memory allocation:"
     print_color $NC "1. Navigate to the application URL"
-    print_color $NC "2. Set memory threshold (e.g., 1024 MB)"
-    print_color $NC "3. Allocate memory above threshold to trigger 500 errors"
+    print_color $NC "2. Set memory threshold within infrastructure limits (≤ ${MEMORY_CAPACITY} MB)"
+    print_color $NC "3. Allocate memory above threshold to trigger controlled 500 errors"
     print_color $NC "4. Use stress test feature for automated testing"
 fi
 
