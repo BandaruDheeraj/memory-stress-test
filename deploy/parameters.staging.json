@@ -15,14 +15,14 @@
       "value": 1024
     },
     "maxAllowedMemoryThresholdMB": {
-      "value": 4096
+      "value": 3072
     },
     "tags": {
       "value": {
         "Application": "MemoryStressTester",
-        "Environment": "Production",
+        "Environment": "Staging",
         "DeployedBy": "Bicep",
-        "Purpose": "Production"
+        "Purpose": "Staging"
       }
     }
   }
