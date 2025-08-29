@@ -371,3 +371,5 @@ deploy/outputs/
 # Environment specific files
 appsettings.*.local.json
 secrets.json
+# Build artifacts
+deploy/main.json

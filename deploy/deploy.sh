@@ -151,14 +151,19 @@ if [[ "$BUILD_ONLY" == false ]]; then
         --output json)
 
     APP_SERVICE_NAME=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.appServiceName.value')
-    APP_SERVICE_URL=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.appServiceUrl.value')
-    STAGING_SLOT_URL=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.stagingSlotUrl.value // empty')
+    APP_SERVICE_URL=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.webAppUrl.value')
+    APP_SERVICE_PLAN_NAME=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.appServicePlanName.value // empty')
+    APP_SERVICE_PLAN_SKU=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.appServicePlanSku.value // empty')
+    APP_INSIGHTS_NAME=$(echo "$DEPLOYMENT_OUTPUT" | jq -r '.applicationInsightsName.value // empty')
 
     print_color $GREEN "✅ Infrastructure deployed successfully!"
     print_color $CYAN "App Service Name: $APP_SERVICE_NAME"
     print_color $CYAN "App Service URL: $APP_SERVICE_URL"
-    if [[ -n "$STAGING_SLOT_URL" && "$STAGING_SLOT_URL" != "null" ]]; then
-        print_color $CYAN "Staging Slot URL: $STAGING_SLOT_URL"
+    if [[ -n "$APP_SERVICE_PLAN_NAME" && "$APP_SERVICE_PLAN_NAME" != "null" ]]; then
+        print_color $CYAN "App Service Plan: $APP_SERVICE_PLAN_NAME ($APP_SERVICE_PLAN_SKU)"
+    fi
+    if [[ -n "$APP_INSIGHTS_NAME" && "$APP_INSIGHTS_NAME" != "null" ]]; then
+        print_color $CYAN "Application Insights: $APP_INSIGHTS_NAME"
     fi
 fi
 
@@ -227,8 +232,15 @@ if [[ "$DEPLOY_ONLY" == false ]]; then
     if [[ -n "$APP_SERVICE_URL" && "$APP_SERVICE_URL" != "null" ]]; then
         print_color $NC "Production: $APP_SERVICE_URL"
     fi
-    if [[ -n "$STAGING_SLOT_URL" && "$STAGING_SLOT_URL" != "null" && "$ENVIRONMENT" != "dev" ]]; then
-        print_color $NC "Staging: $STAGING_SLOT_URL"
+    echo ""
+    print_color $CYAN "📋 Infrastructure Details:"
+    if [[ -n "$APP_SERVICE_PLAN_NAME" && "$APP_SERVICE_PLAN_NAME" != "null" ]]; then
+        print_color $NC "App Service Plan: $APP_SERVICE_PLAN_NAME ($APP_SERVICE_PLAN_SKU)"
+    fi
+    if [[ -n "$APP_INSIGHTS_NAME" && "$APP_INSIGHTS_NAME" != "null" ]]; then
+        print_color $NC "Application Insights: $APP_INSIGHTS_NAME (Enabled)"
+    else
+        print_color $NC "Application Insights: Disabled"
     fi
     echo ""
     print_color $YELLOW "📊 To test the memory allocation:"

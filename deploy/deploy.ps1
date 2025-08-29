@@ -66,14 +66,19 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Failed to deploy infrastructure" }
 
         $appServiceName = $deploymentResult.appServiceName.value
-        $appServiceUrl = $deploymentResult.appServiceUrl.value
-        $stagingSlotUrl = $deploymentResult.stagingSlotUrl.value
+        $appServiceUrl = $deploymentResult.webAppUrl.value
+        $appServicePlanName = $deploymentResult.appServicePlanName.value
+        $appServicePlanSku = $deploymentResult.appServicePlanSku.value
+        $appInsightsName = $deploymentResult.applicationInsightsName.value
 
         Write-Host "✅ Infrastructure deployed successfully!" -ForegroundColor Green
         Write-Host "App Service Name: $appServiceName" -ForegroundColor Cyan
         Write-Host "App Service URL: $appServiceUrl" -ForegroundColor Cyan
-        if ($stagingSlotUrl) {
-            Write-Host "Staging Slot URL: $stagingSlotUrl" -ForegroundColor Cyan
+        if ($appServicePlanName) {
+            Write-Host "App Service Plan: $appServicePlanName ($appServicePlanSku)" -ForegroundColor Cyan
+        }
+        if ($appInsightsName) {
+            Write-Host "Application Insights: $appInsightsName" -ForegroundColor Cyan
         }
     }
 
@@ -155,8 +160,15 @@ try {
         if ($appServiceUrl) {
             Write-Host "Production: $appServiceUrl" -ForegroundColor White
         }
-        if ($stagingSlotUrl -and $Environment -ne 'dev') {
-            Write-Host "Staging: $stagingSlotUrl" -ForegroundColor White
+        Write-Host ""
+        Write-Host "📋 Infrastructure Details:" -ForegroundColor Cyan
+        if ($appServicePlanName) {
+            Write-Host "App Service Plan: $appServicePlanName ($appServicePlanSku)" -ForegroundColor White
+        }
+        if ($appInsightsName) {
+            Write-Host "Application Insights: $appInsightsName (Enabled)" -ForegroundColor White
+        } else {
+            Write-Host "Application Insights: Disabled" -ForegroundColor White
         }
         Write-Host ""
         Write-Host "📊 To test the memory allocation:" -ForegroundColor Yellow
