@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
 
 namespace MemoryStressTester.Services;
 
@@ -14,16 +15,19 @@ public class MemoryStressService : IMemoryStressService, IDisposable
 {
     private readonly ConcurrentDictionary<Guid, byte[]> _allocatedMemory;
     private readonly Timer _cleanupTimer;
+    private readonly MemorySettings _settings;
     private readonly object _lock = new();
     private bool _disposed = false;
 
-    public MemoryStressService()
+    public MemoryStressService(IOptions<MemorySettings> settings)
     {
+        _settings = settings.Value;
         _allocatedMemory = new ConcurrentDictionary<Guid, byte[]>();
         
         // Cleanup timer to prevent indefinite memory growth
         _cleanupTimer = new Timer(CleanupOldAllocations, null, 
-            TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+            TimeSpan.FromSeconds(_settings.CleanupIntervalSeconds), 
+            TimeSpan.FromSeconds(_settings.CleanupIntervalSeconds));
     }
 
     public async Task<MemoryAllocationResult> AllocateMemoryAsync(int megabytes, int thresholdMB)
@@ -33,6 +37,49 @@ public class MemoryStressService : IMemoryStressService, IDisposable
             var allocationId = Guid.NewGuid();
             var startMemory = GC.GetTotalMemory(false);
             var startTime = DateTime.UtcNow;
+
+            // Apply resource limiting if enabled
+            if (_settings.EnableResourceLimiting)
+            {
+                // Check maximum allocation size
+                if (megabytes > _settings.MaxAllocationSizeMB)
+                {
+                    return new MemoryAllocationResult
+                    {
+                        Success = false,
+                        AllocationId = allocationId,
+                        RequestedMB = megabytes,
+                        ThresholdMB = thresholdMB,
+                        CurrentMemoryMB = GetCurrentMemoryUsageMB(),
+                        Message = $"Allocation size {megabytes}MB exceeds maximum allowed {_settings.MaxAllocationSizeMB}MB",
+                        IsThresholdExceeded = false,
+                        IsOutOfMemory = false
+                    };
+                }
+
+                // Check maximum concurrent allocations
+                if (_allocatedMemory.Count >= _settings.MaxConcurrentAllocations)
+                {
+                    return new MemoryAllocationResult
+                    {
+                        Success = false,
+                        AllocationId = allocationId,
+                        RequestedMB = megabytes,
+                        ThresholdMB = thresholdMB,
+                        CurrentMemoryMB = GetCurrentMemoryUsageMB(),
+                        Message = $"Maximum concurrent allocations ({_settings.MaxConcurrentAllocations}) reached. Clear allocations first.",
+                        IsThresholdExceeded = false,
+                        IsOutOfMemory = false
+                    };
+                }
+
+                // Enforce maximum allowed threshold
+                var effectiveThreshold = Math.Min(thresholdMB, _settings.MaxAllowedThresholdMB);
+                if (thresholdMB > _settings.MaxAllowedThresholdMB)
+                {
+                    thresholdMB = effectiveThreshold;
+                }
+            }
 
             // Check if we're about to exceed threshold
             var currentMemoryMB = GetCurrentMemoryUsageMB();

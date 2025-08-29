@@ -371,3 +371,11 @@ deploy/outputs/
 # Environment specific files
 appsettings.*.local.json
 secrets.json
+
+# IaC Drift Detection Reports
+drift-report-*.json
+deployment-*.log
+
+# Temporary deployment files
+app.zip
+publish/
