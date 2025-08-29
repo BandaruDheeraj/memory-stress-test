@@ -4,6 +4,18 @@
   "parameters": {
     "appName": {
       "value": "memory-stress-tester"
+    },
+    "appServicePlanSku": {
+      "value": "B1"
+    },
+    "appServicePlanCapacity": {
+      "value": 1
+    },
+    "alwaysOn": {
+      "value": false
+    },
+    "minTlsVersion": {
+      "value": "1.2"
     }
   }
 }

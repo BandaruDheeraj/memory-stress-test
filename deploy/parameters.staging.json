@@ -9,7 +9,7 @@
       "value": "B2"
     },
     "appServicePlanCapacity": {
-      "value": 2
+      "value": 1
     },
     "alwaysOn": {
       "value": true
@@ -18,7 +18,7 @@
       "value": "1.2"
     },
     "environment": {
-      "value": "prod"
+      "value": "staging"
     },
     "enableApplicationInsights": {
       "value": true
@@ -27,14 +27,14 @@
       "value": 1024
     },
     "maxAllowedMemoryThresholdMB": {
-      "value": 4096
+      "value": 2048
     },
     "tags": {
       "value": {
         "Application": "MemoryStressTester",
-        "Environment": "Production",
+        "Environment": "Staging",
         "DeployedBy": "Bicep",
-        "Purpose": "Production"
+        "Purpose": "Testing"
       }
     }
   }
