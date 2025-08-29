@@ -367,6 +367,8 @@ app.zip
 
 # Azure deployment files (keep templates, ignore generated files)
 deploy/outputs/
+deploy/*.json
+!deploy/parameters.*.json
 
 # Environment specific files
 appsettings.*.local.json
