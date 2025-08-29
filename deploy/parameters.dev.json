@@ -3,7 +3,30 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "appName": {
-      "value": "memory-stress-tester"
+      "value": "memory-stress-tester-dev"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "appServicePlanSku": {
+      "value": "B1"
+    },
+    "enableApplicationInsights": {
+      "value": false
+    },
+    "defaultMemoryThresholdMB": {
+      "value": 256
+    },
+    "maxAllowedMemoryThresholdMB": {
+      "value": 1024
+    },
+    "tags": {
+      "value": {
+        "Application": "MemoryStressTester",
+        "Environment": "Development",
+        "DeployedBy": "Bicep",
+        "Purpose": "Development"
+      }
     }
   }
 }

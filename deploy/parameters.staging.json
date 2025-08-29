@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "appName": {
-      "value": "iac-drift-demo"
+      "value": "iac-drift-demo-staging"
     },
     "environment": {
-      "value": "prod"
+      "value": "staging"
     },
     "appServicePlanSku": {
       "value": "S1"
@@ -23,11 +23,9 @@
     "tags": {
       "value": {
         "Application": "MemoryStressTester",
-        "Environment": "Production",
+        "Environment": "Staging",
         "DeployedBy": "Bicep",
-        "Purpose": "IaC-Drift-Demo",
-        "Incident": "2025-08-29-Resource-Spike",
-        "LastUpdated": "2025-08-29"
+        "Purpose": "IaC-Drift-Demo-Staging"
       }
     }
   }

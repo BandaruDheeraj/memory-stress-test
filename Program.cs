@@ -7,6 +7,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add Application Insights telemetry
+builder.Services.AddApplicationInsightsTelemetry();
+
 // Add our memory management service
 builder.Services.AddSingleton<IMemoryStressService, MemoryStressService>();
 
