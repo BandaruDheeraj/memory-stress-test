@@ -1,0 +1,132 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.37.4.10188",
+      "templateHash": "17102917678471664449"
+    }
+  },
+  "parameters": {
+    "appName": {
+      "type": "string",
+      "defaultValue": "memory-stress-tester"
+    },
+    "appServicePlanSku": {
+      "type": "string",
+      "defaultValue": "B1"
+    },
+    "enableApplicationInsights": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "defaultMemoryThresholdMB": {
+      "type": "int",
+      "defaultValue": 1024
+    },
+    "maxAllowedMemoryThresholdMB": {
+      "type": "int",
+      "defaultValue": 4096
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {}
+    }
+  },
+  "variables": {
+    "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 6)]",
+    "planName": "[format('{0}-{1}', parameters('appName'), variables('uniqueSuffix'))]",
+    "webAppName": "[format('{0}-{1}', parameters('appName'), variables('uniqueSuffix'))]",
+    "appInsightsName": "[format('{0}-insights-{1}', parameters('appName'), variables('uniqueSuffix'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('planName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('appServicePlanSku')]"
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[parameters('enableApplicationInsights')]",
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "RetentionInDays": 90,
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('webAppName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "netFrameworkVersion": "v8.0",
+          "alwaysOn": "[and(not(equals(parameters('appServicePlanSku'), 'B1')), not(equals(parameters('appServicePlanSku'), 'F1')))]",
+          "minTlsVersion": "1.2",
+          "ftpsState": "FtpsOnly",
+          "healthCheckPath": "/health",
+          "appSettings": "[if(parameters('enableApplicationInsights'), createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString), createObject('name', 'MemorySettings__DefaultThresholdMB', 'value', string(parameters('defaultMemoryThresholdMB'))), createObject('name', 'MemorySettings__MaxAllowedThresholdMB', 'value', string(parameters('maxAllowedMemoryThresholdMB')))), createArray(createObject('name', 'MemorySettings__DefaultThresholdMB', 'value', string(parameters('defaultMemoryThresholdMB'))), createObject('name', 'MemorySettings__MaxAllowedThresholdMB', 'value', string(parameters('maxAllowedMemoryThresholdMB')))))]",
+          "autoHealEnabled": true,
+          "autoHealRules": {
+            "triggers": {
+              "requests": {
+                "count": 20,
+                "timeInterval": "00:01:00"
+              },
+              "statusCodes": [
+                {
+                  "status": 500,
+                  "subStatus": 0,
+                  "count": 5,
+                  "timeInterval": "00:01:00"
+                }
+              ]
+            },
+            "actions": {
+              "actionType": "Recycle",
+              "minProcessExecutionTime": "00:01:00"
+            }
+          }
+        }
+      },
+      "tags": "[parameters('tags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('planName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "appServiceName": {
+      "type": "string",
+      "value": "[variables('webAppName')]"
+    },
+    "appServiceUrl": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Web/sites', variables('webAppName')), '2023-01-01').defaultHostName)]"
+    },
+    "applicationInsightsName": {
+      "type": "string",
+      "value": "[if(parameters('enableApplicationInsights'), variables('appInsightsName'), '')]"
+    },
+    "applicationInsightsConnectionString": {
+      "type": "string",
+      "value": "[if(parameters('enableApplicationInsights'), reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString, '')]"
+    }
+  }
+}

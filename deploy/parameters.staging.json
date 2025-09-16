@@ -6,7 +6,7 @@
       "value": "memory-stress-tester"
     },
     "appServicePlanSku": {
-      "value": "B2"
+      "value": "S1"
     },
     "enableApplicationInsights": {
       "value": true
@@ -20,9 +20,9 @@
     "tags": {
       "value": {
         "Application": "MemoryStressTester",
-        "Environment": "Production",
+        "Environment": "Staging",
         "DeployedBy": "Bicep",
-        "Purpose": "Production"
+        "Purpose": "Staging"
       }
     }
   }
