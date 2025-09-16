@@ -32,6 +32,7 @@ A sophisticated ASP.NET Core web application that demonstrates controlled memory
 ### Prerequisites
 - .NET 8.0 SDK
 - Visual Studio 2022 or VS Code
+- Azure CLI (for deployment)
 
 ### Quick Start
 
@@ -47,6 +48,27 @@ A sophisticated ASP.NET Core web application that demonstrates controlled memory
 
 3. **Open in Browser**
    - Navigate to `https://localhost:7001` or `http://localhost:5000`
+
+### Azure Deployment
+
+Deploy the application to Azure App Service using the included Bicep templates:
+
+```bash
+# Deploy to development environment
+./deploy/deploy.sh -e dev -g rg-memory-tester-dev -s <subscription-id>
+
+# Deploy to production with Application Insights
+./deploy/deploy.sh -e prod -g rg-memory-tester-prod -s <subscription-id>
+```
+
+#### Infrastructure Components
+
+The deployment creates:
+- **App Service Plan**: B1 (dev), S1 (staging), B2 (prod) with auto-scaling capabilities
+- **Web App**: Configured with health checks, auto-heal rules, and monitoring
+- **Application Insights**: (staging/prod) For comprehensive monitoring and telemetry
+- **Health Check Path**: `/health` for Azure health monitoring
+- **Auto-Heal Rules**: Automatic app recycle on 5+ HTTP 500s within 1 minute
 
 ### Configuration
 
@@ -79,6 +101,13 @@ Edit `appsettings.json` to customize memory limits:
 - `POST /api/memory/clear` - Clear all allocations and force GC
 - `POST /api/memory/stress-test` - Run automated stress test
 - `GET /api/memory/settings` - Get configuration settings
+
+### Health Check Endpoints
+
+- `GET /health` - Basic health check (ASP.NET Core built-in)
+- `GET /api/health` - Detailed health check with memory status
+- `GET /api/health/ready` - Readiness probe (returns 503 if memory usage > 8GB)
+- `GET /api/health/live` - Liveness probe (simple alive check)
 
 ### Memory Monitoring
 
@@ -154,10 +183,17 @@ The application tracks:
 ### Project Structure
 ```
 ├── Controllers/
-│   └── MemoryController.cs      # API endpoints
+│   ├── MemoryController.cs      # API endpoints
+│   └── HealthController.cs      # Health check endpoints
 ├── Services/
 │   ├── MemoryStressService.cs   # Core memory management
 │   └── MemorySettings.cs        # Configuration model
+├── deploy/
+│   ├── main.bicep               # Azure infrastructure template
+│   ├── deploy.sh                # Deployment script
+│   ├── parameters.dev.json      # Development configuration
+│   ├── parameters.staging.json  # Staging configuration
+│   └── parameters.prod.json     # Production configuration
 ├── Properties/
 │   └── launchSettings.json      # Development settings
 ├── wwwroot/
